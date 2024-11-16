@@ -26,30 +26,29 @@ class ObjectTracker:
     def __init__(self, max_distance=30, max_objects=6):
         self.max_distance = max_distance
         self.max_objects = max_objects
-        self.tracked_points = [None] * max_objects  # Fixed size list
-        self.object_ids = list(range(1, max_objects + 1))  # IDs 1 to max_objects
-        self.initial_positions = [None] * max_objects  # Reference initial positions
-        self.initialized = False  # Flag to check if the initial positions are set
-        self.played_flags = [False] * max_objects  # Flags to manage note playing
+        self.tracked_points = [None] * max_objects
+        self.object_ids = list(range(1, max_objects + 1))
+        self.initial_positions = [None] * max_objects
+        self.initialized = False
+        self.played_flags = [False] * max_objects
 
     def update(self, detected_points):
-        # Sort detected points by their x-coordinate for left-to-right order
+        if not detected_points:
+            self.played_flags = [False] * self.max_objects
+            return self.tracked_points
+
         detected_points.sort(key=lambda p: p[0])
 
         if not self.initialized and len(detected_points) >= self.max_objects:
-            # Set the initial positions and tracked points when first detected
             self.tracked_points = detected_points[: self.max_objects]
             self.initial_positions = detected_points[: self.max_objects]
             self.initialized = True
 
         assigned = [False] * len(detected_points)
         updated_points = [None] * self.max_objects
-
-        # Create a cost matrix for the Hungarian algorithm
         cost_matrix = np.full((self.max_objects, len(detected_points)), np.inf)
 
-        for i in range(self.max_objects):
-            tracked_point = self.tracked_points[i]
+        for i, tracked_point in enumerate(self.tracked_points):
             if tracked_point is not None:
                 for j, detected_point in enumerate(detected_points):
                     if not assigned[j]:
@@ -57,57 +56,32 @@ class ObjectTracker:
                             tracked_point, detected_point
                         )
 
-        # Replace inf values with a large number
         cost_matrix[cost_matrix == np.inf] = 1e6
-
-        # Solve the assignment problem using the Hungarian algorithm
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
         for i, j in zip(row_ind, col_ind):
             if cost_matrix[i, j] < self.max_distance:
                 updated_points[i] = detected_points[j]
                 assigned[j] = True
-
-                # Reset the played flag if the object is detected again
                 if not self.played_flags[i]:
-                    note_sounds[i].play()  # Play the sound
+                    try:
+                        note_sounds[i].play()
+                        print(
+                            f"Playing sound for object ID {self.object_ids[i]}: Note {chr(65 + i)}"
+                        )
+                    except Exception as e:
+                        print(
+                            f"Error playing sound for object ID {self.object_ids[i]}: {e}"
+                        )
                     self.played_flags[i] = True
 
-        # Assign new detected points to empty slots in order
-        for i in range(self.max_objects):
-            if updated_points[i] is None:  # Empty slot
-                for j, detected_point in enumerate(detected_points):
-                    if not assigned[j]:
-                        initial_distance = (
-                            distance.euclidean(
-                                self.initial_positions[i], detected_point
-                            )
-                            if self.initial_positions[i] is not None
-                            else float("inf")
-                        )
-                        if (
-                            initial_distance < self.max_distance
-                            or self.tracked_points[i] is None
-                        ):
-                            updated_points[i] = detected_point
-                            assigned[j] = True
-                            break
-
-        # Ensure IDs do not change order
-        for i in range(self.max_objects):
-            if updated_points[i] is not None and self.tracked_points[i] is None:
-                self.initial_positions[i] = updated_points[i]
-
-        # Check for objects that have moved away and reset their played flags
         for i in range(self.max_objects):
             if updated_points[i] is None:
+                updated_points[i] = self.tracked_points[i]
                 self.played_flags[i] = False
 
-        self.tracked_points = updated_points
-
-        # Debug: Print current state
-        print(f"Tracked Points: {self.tracked_points}")
-        print(f"Object IDs: {self.object_ids}")
+        # print(f"Tracked Points: {self.tracked_points}")
+        # print(f"Object IDs: {self.object_ids}")
 
         return updated_points
 
