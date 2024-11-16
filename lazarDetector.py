@@ -3,6 +3,7 @@ import numpy as np
 from scipy.spatial import distance
 from scipy.optimize import linear_sum_assignment
 import pygame
+import time
 
 # Initialize the pygame mixer
 pygame.mixer.init()
@@ -31,6 +32,8 @@ class ObjectTracker:
         self.initial_positions = [None] * max_objects
         self.initialized = False
         self.played_flags = [False] * max_objects
+        self.last_played_time = [0] * max_objects
+        self.debounce_time = 0.5  # 500 milliseconds debounce time
 
     def update(self, detected_points):
         if not detected_points:
@@ -63,7 +66,10 @@ class ObjectTracker:
             if cost_matrix[i, j] < self.max_distance:
                 updated_points[i] = detected_points[j]
                 assigned[j] = True
-                if not self.played_flags[i]:
+                current_time = time.time()
+                if not self.played_flags[i] and (
+                    current_time - self.last_played_time[i] > self.debounce_time
+                ):
                     try:
                         note_sounds[i].play()
                         print(
@@ -74,14 +80,12 @@ class ObjectTracker:
                             f"Error playing sound for object ID {self.object_ids[i]}: {e}"
                         )
                     self.played_flags[i] = True
+                    self.last_played_time[i] = current_time
 
         for i in range(self.max_objects):
             if updated_points[i] is None:
                 updated_points[i] = self.tracked_points[i]
                 self.played_flags[i] = False
-
-        # print(f"Tracked Points: {self.tracked_points}")
-        # print(f"Object IDs: {self.object_ids}")
 
         return updated_points
 
