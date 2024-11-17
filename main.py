@@ -1,7 +1,7 @@
 import subprocess
 
 lazar_process = subprocess.Popen(
-    ["python", "lazarDetection.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ["python", "lazarDetector.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
 )
 
 subprocess.run(["python", "pitch.py"])

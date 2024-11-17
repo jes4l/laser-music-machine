@@ -20,10 +20,12 @@ while cap.isOpened():
     if not ret:
         break
 
+    frame = cv2.flip(frame, 1)
+
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    lower_green = np.array([35, 50, 50])
-    upper_green = np.array([85, 255, 255])
+    lower_green = np.array([60, 100, 40])
+    upper_green = np.array([180, 150, 150])
 
     mask = cv2.inRange(hsv_frame, lower_green, upper_green)
 

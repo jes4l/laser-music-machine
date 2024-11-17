@@ -4,6 +4,8 @@ from scipy.spatial import distance
 from scipy.optimize import linear_sum_assignment
 import pygame
 import time
+import csv
+import subprocess
 
 pygame.mixer.init()
 
@@ -15,6 +17,8 @@ note_sounds = [
     pygame.mixer.Sound("E.MP3"),
     pygame.mixer.Sound("F.MP3"),
 ]
+
+recording_data = []
 
 
 def dynamic_red_range(frame):
@@ -87,6 +91,7 @@ class ObjectTracker:
                         print(
                             f"Playing sound for object ID {self.object_ids[i]}: Note {chr(65 + i)}"
                         )
+                        recording_data.append((time.time(), chr(65 + i)))
                     except Exception as e:
                         print(
                             f"Error playing sound for object ID {self.object_ids[i]}: {e}"
@@ -154,24 +159,6 @@ def detect_red_objects(frame):
 
     tracked_points = tracker.update(detected_points)
 
-    """cv2.rectangle(
-        frame,
-        (stripe_left, stripe_top),
-        (stripe_right, stripe_bottom),
-        (255, 0, 0),
-        2,
-    )
-
-    for i in range(1, 6):
-        segment_line_x = stripe_left + i * segment_width
-        cv2.line(
-            frame,
-            (segment_line_x, stripe_top),
-            (segment_line_x, stripe_bottom),
-            (0, 255, 0),
-            1,
-        )"""
-
     for i, point in enumerate(tracked_points):
         if point is not None:
             x, y = point
@@ -198,7 +185,18 @@ while True:
     processed_frame = detect_red_objects(frame)
     cv2.imshow("Red Object Detection", processed_frame)
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("q"):  # Trigger exit when 'q' is pressed
+        # Save recording data to CSV
+        with open("recording.csv", "w", newline="") as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(["Time", "Note"])
+            csvwriter.writerows(recording_data)
+        # Run end.py
+        subprocess.run(["python", "end.py"])
+        break
+
+    if cv2.getWindowProperty("Red Object Detection", cv2.WND_PROP_VISIBLE) < 1:
         break
 
 cap.release()
