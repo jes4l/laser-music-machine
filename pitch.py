@@ -22,30 +22,12 @@ while cap.isOpened():
 
     frame = cv2.flip(frame, 1)
 
-    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    lower_green = np.array([60, 100, 40])
-    upper_green = np.array([180, 150, 150])
-
-    mask = cv2.inRange(hsv_frame, lower_green, upper_green)
-
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    green_points = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if 100 < area < 2000:
-            M = cv2.moments(contour)
-            if M["m00"] != 0:
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
-                green_points.append((cx, cy))
-
-    if len(green_points) == 2:
-        start_point = green_points[0]
-        end_point = green_points[1]
-        cv2.line(frame, start_point, end_point, (0, 255, 0), 2)
-        line_length = np.linalg.norm(np.array(start_point) - np.array(end_point))
+    # Draw a line from the top middle to the bottom middle of the screen
+    height, width, _ = frame.shape
+    start_point = (width // 2, 0)
+    end_point = (width // 2, height)
+    cv2.line(frame, start_point, end_point, (0, 255, 0), 2)
+    line_length = np.linalg.norm(np.array(start_point) - np.array(end_point))
 
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(rgb_frame)
@@ -58,24 +40,23 @@ while cap.isOpened():
 
             mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            if len(green_points) == 2:
-                vector_line = np.array(end_point) - np.array(start_point)
-                vector_index = np.array([index_x, index_y]) - np.array(start_point)
-                projection_length = np.dot(vector_index, vector_line) / np.linalg.norm(
-                    vector_line
-                )
-                percentage = (projection_length / line_length) * 100
-                percentage = max(0, min(100, percentage))
-                cv2.putText(
-                    frame,
-                    f"{int(percentage)}%",
-                    (index_x + 10, index_y),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (255, 0, 0),
-                    2,
-                )
-                volume.SetMasterVolumeLevelScalar(percentage / 100, None)
+            vector_line = np.array(end_point) - np.array(start_point)
+            vector_index = np.array([index_x, index_y]) - np.array(start_point)
+            projection_length = np.dot(vector_index, vector_line) / np.linalg.norm(
+                vector_line
+            )
+            percentage = 100 - (projection_length / line_length) * 100
+            percentage = max(0, min(100, percentage))
+            cv2.putText(
+                frame,
+                f"{int(percentage)}%",
+                (index_x + 10, index_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 0, 0),
+                2,
+            )
+            volume.SetMasterVolumeLevelScalar(percentage / 100, None)
 
     cv2.imshow("Hand and Line Detection", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
