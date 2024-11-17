@@ -48,7 +48,7 @@ def dynamic_red_range(frame):
 
 
 class ObjectTracker:
-    def __init__(self, max_distance=30, max_objects=6, debounce_time=0.3):
+    def __init__(self, max_distance=30, max_objects=6):
         self.max_distance = max_distance
         self.max_objects = max_objects
         self.tracked_points = [None] * max_objects
@@ -57,7 +57,7 @@ class ObjectTracker:
         self.initialized = False
         self.played_flags = [False] * max_objects
         self.last_played_time = [0] * max_objects
-        self.debounce_time = debounce_time  # Reduced debounce time
+        self.debounce_time = 0.5  # 500 milliseconds debounce time
 
     def update(self, detected_points):
         if not detected_points:
