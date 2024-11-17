@@ -5,10 +5,8 @@ from scipy.optimize import linear_sum_assignment
 import pygame
 import time
 
-# Initialize the pygame mixer
 pygame.mixer.init()
 
-# Load sounds for each note
 note_sounds = [
     pygame.mixer.Sound("A.MP3"),
     pygame.mixer.Sound("B.MP3"),
@@ -19,28 +17,18 @@ note_sounds = [
 ]
 
 
-# Define a function to dynamically calculate the red color range in HSV
 def dynamic_red_range(frame):
-    """
-    Dynamically calculates the red color range in HSV.
-    Enhances the detection by equalizing and analyzing the hue channel.
-    """
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    # Apply CLAHE to the Hue channel to improve contrast
     hue_channel = hsv_frame[:, :, 0]
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     hue_channel = clahe.apply(hue_channel)
 
-    # Compute the histogram of the Hue channel
     hist = cv2.calcHist([hue_channel], [0], None, [180], [0, 180])
     hist = cv2.normalize(hist, hist).flatten()
 
-    # Identify peaks in the histogram corresponding to red hues
     lower_peak = np.argmax(hist[:20])  # Hue 0-20 (lower red)
     upper_peak = np.argmax(hist[150:]) + 150  # Hue 150-180 (upper red)
 
-    # Dynamically set lower and upper bounds
     lower_red = max(0, lower_peak - 10)
     upper_red = min(179, upper_peak + 10)
 
@@ -57,7 +45,7 @@ class ObjectTracker:
         self.initialized = False
         self.played_flags = [False] * max_objects
         self.last_played_time = [0] * max_objects
-        self.debounce_time = debounce_time  # Reduced debounce time
+        self.debounce_time = debounce_time
 
     def update(self, detected_points):
         if not detected_points:
@@ -114,63 +102,49 @@ class ObjectTracker:
         return updated_points
 
 
-# Instantiate object tracker
 tracker = ObjectTracker(max_distance=30, max_objects=6)
 
 
 def detect_red_objects(frame):
-    """
-    Detects a single red object in each of 6 vertical segments of a defined ROI.
-    Improves accuracy using advanced preprocessing and validation.
-    """
-    # Define the region of interest (ROI)
     stripe_top, stripe_bottom, stripe_left, stripe_right = 250, 340, 5, 630
     stripe_width = stripe_right - stripe_left
-    segment_width = stripe_width // 6  # Width of each vertical segment
+    segment_width = stripe_width // 6
 
-    # Get the dynamic red range for the stripe region
     stripe_roi = frame[stripe_top:stripe_bottom, stripe_left:stripe_right]
     LOWER_RED, UPPER_RED = dynamic_red_range(stripe_roi)
 
-    # Convert the full frame to HSV and apply the mask to the ROI
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     red_mask = cv2.inRange(hsv_frame, LOWER_RED, UPPER_RED)
 
-    # Preprocessing for better detection
     red_mask = cv2.GaussianBlur(red_mask, (5, 5), 0)
     red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     red_mask = cv2.dilate(red_mask, np.ones((3, 3), np.uint8), iterations=1)
 
     detected_points = []
 
-    # Process each vertical segment separately
-    for i in range(6):  # Loop over 6 segments
+    for i in range(6):
         segment_left = stripe_left + i * segment_width
         segment_right = segment_left + segment_width
 
-        # Mask out everything outside the current segment
         segment_mask = np.zeros_like(red_mask)
         segment_mask[stripe_top:stripe_bottom, segment_left:segment_right] = red_mask[
             stripe_top:stripe_bottom, segment_left:segment_right
         ]
 
-        # Detect contours in the current segment
         contours, _ = cv2.findContours(
             segment_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
         )
 
-        # Select a single red source per segment
         largest_contour = None
         max_area = 0
 
         for contour in contours:
             area = cv2.contourArea(contour)
-            if 100 < area < 10000:  # Minimum and maximum area thresholds
+            if 100 < area < 10000:
                 if area > max_area:
                     max_area = area
                     largest_contour = contour
 
-        # If a valid contour is found, calculate its center
         if largest_contour is not None:
             M = cv2.moments(largest_contour)
             if M["m00"] != 0:
@@ -178,30 +152,26 @@ def detect_red_objects(frame):
                 cY = int(M["m01"] / M["m00"])
                 detected_points.append((cX, cY))
 
-    # Update the tracker with detected points
     tracked_points = tracker.update(detected_points)
 
-    # Visualize the region of interest (draw border)
     cv2.rectangle(
         frame,
-        (stripe_left, stripe_top),  # Top-left corner of the stripe
-        (stripe_right, stripe_bottom),  # Bottom-right corner of the stripe
-        (255, 0, 0),  # Blue color for the border
-        2,  # Thickness of the border
+        (stripe_left, stripe_top),
+        (stripe_right, stripe_bottom),
+        (255, 0, 0),
+        2,
     )
 
-    # Draw segment borders
-    for i in range(1, 6):  # Draw lines between the 6 vertical segments
+    for i in range(1, 6):
         segment_line_x = stripe_left + i * segment_width
         cv2.line(
             frame,
             (segment_line_x, stripe_top),
             (segment_line_x, stripe_bottom),
-            (0, 255, 0),  # Green line
+            (0, 255, 0),
             1,
         )
 
-    # Visualize tracked points
     for i, point in enumerate(tracked_points):
         if point is not None:
             x, y = point
@@ -225,11 +195,7 @@ while True:
     ret, frame = cap.read()
     if not ret:
         break
-
-    # Dynamically detect and track red objects only in the stripe
     processed_frame = detect_red_objects(frame)
-
-    # Show the results
     cv2.imshow("Red Object Detection", processed_frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
