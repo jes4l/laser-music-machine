@@ -154,7 +154,7 @@ def detect_red_objects(frame):
 
     tracked_points = tracker.update(detected_points)
 
-    cv2.rectangle(
+    """cv2.rectangle(
         frame,
         (stripe_left, stripe_top),
         (stripe_right, stripe_bottom),
@@ -170,7 +170,7 @@ def detect_red_objects(frame):
             (segment_line_x, stripe_bottom),
             (0, 255, 0),
             1,
-        )
+        )"""
 
     for i, point in enumerate(tracked_points):
         if point is not None:
