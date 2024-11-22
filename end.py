@@ -5,7 +5,7 @@ import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-pygame.init()  # Initialize all Pygame modules
+pygame.init()
 
 pygame.mixer.init()
 
@@ -18,21 +18,17 @@ note_sounds = {
     "F": pygame.mixer.Sound("F.MP3"),
 }
 
-# Screen dimensions
 screen_width = 800
 screen_height = 600
 
-# Colors
 white = (255, 255, 255)
 black = (0, 0, 0)
 green = (0, 255, 0)
 red = (255, 0, 0)
 
-# Fonts
 font = pygame.font.SysFont(None, 55)
 small_font = pygame.font.SysFont(None, 35)
 
-# Screen setup
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Playback Options")
 
@@ -51,7 +47,7 @@ def play_recording(filename):
 
     with open(filename, "r") as csvfile:
         csvreader = csv.reader(csvfile)
-        next(csvreader)  # Skip header
+        next(csvreader)
         recording_data = list(csvreader)
 
     if not recording_data:
@@ -80,7 +76,6 @@ def main_menu():
             screen_height // 3,
         )
 
-        # Play recent recording button
         recent_button_rect = pygame.Rect(
             screen_width // 2 - 150, screen_height // 2 - 50, 300, 50
         )
@@ -94,7 +89,6 @@ def main_menu():
             screen_height // 2 - 25,
         )
 
-        # Play from CSV button
         csv_button_rect = pygame.Rect(
             screen_width // 2 - 150, screen_height // 2 + 50, 300, 50
         )
@@ -116,13 +110,12 @@ def main_menu():
                 if recent_button_rect.collidepoint(event.pos):
                     play_recording("recording.csv")
                 if csv_button_rect.collidepoint(event.pos):
-                    # Open file explorer dialog
-                    Tk().withdraw()  # Hide the root window
+                    Tk().withdraw()
                     filename = askopenfilename(filetypes=[("CSV files", "*.csv")])
                     if filename:
                         play_recording(filename)
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:  # Q key pressed
+                if event.key == pygame.K_q:
                     pygame.quit()
                     return
 

@@ -4,32 +4,27 @@ import random
 import sys
 import subprocess
 
-# Initialize Pygame
 pygame.init()
 
-# Constants
 WIDTH, HEIGHT = 800, 600
-BACKGROUND_COLOR = (0, 0, 0)  # Black background
-BUTTON_COLOR = (119, 119, 119)  # Button color (Dodger Blue)
-BUTTON_HOVER_COLOR = (85, 85, 85)  # Hover effect (Cornflower Blue)
-TEXT_COLOR = (255, 255, 255)  # White text
+BACKGROUND_COLOR = (0, 0, 0)
+BUTTON_COLOR = (119, 119, 119)
+BUTTON_HOVER_COLOR = (85, 85, 85)
+TEXT_COLOR = (255, 255, 255)
 FONT_SIZE = 80
-BUTTON_FONT_SIZE = 36  # Smaller font size for buttons
+BUTTON_FONT_SIZE = 36
 NUM_RAYS = 360
-WOOD_COLOR = (139, 69, 19)  # Wood color for walls
+WOOD_COLOR = (139, 69, 19)
 
-# Setup display and fonts
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Laser Music Machine")
 font = pygame.font.Font(None, FONT_SIZE)
 button_font = pygame.font.Font(None, BUTTON_FONT_SIZE)
 small_font = pygame.font.Font(None, 36)
 
-# Global state for recording
 recording = False
 
 
-# Helper functions
 def draw_text(text, font, color, surface, x, y):
     """Draw centered text on the screen."""
     text_surface = font.render(text, True, color)
@@ -37,7 +32,6 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(text_surface, text_rect)
 
 
-# Classes
 class Ray:
     def __init__(self, x1, y1, dirX, dirY):
         self.x1 = x1
@@ -106,9 +100,7 @@ class Light:
                         closest = distance
                         closest_point = intersection
             if closest_point:
-                pygame.draw.line(
-                    surface, (255, 0, 0), (ray.x1, ray.y1), closest_point
-                )  # Red lasers
+                pygame.draw.line(surface, (255, 0, 0), (ray.x1, ray.y1), closest_point)
 
 
 class Button:
@@ -135,7 +127,6 @@ class Button:
         return self.rect.collidepoint(mouse_pos)
 
 
-# Game Logic
 def draw_random_notes(surface, music_notes, music_note_timer):
     """Draw music notes one by one."""
     if music_note_timer < len(music_notes):
@@ -148,13 +139,9 @@ def draw_random_notes(surface, music_notes, music_note_timer):
     return music_note_timer
 
 
-# Initialize Buttons
 start_button = Button("Start", WIDTH // 2 - 100, HEIGHT // 2 + 100, 200, 70)
-toggle_button = Button(
-    "Recording: OFF", WIDTH // 2 - 100, HEIGHT // 2, 250, 100
-)  # Increased button size
+toggle_button = Button("Recording: OFF", WIDTH // 2 - 100, HEIGHT // 2, 250, 100)
 
-# Initialize walls and light source
 walls = [
     Wall(0, 0, WIDTH - 1, 0),
     Wall(0, 0, 0, HEIGHT - 1),
@@ -173,33 +160,26 @@ for i in range(random.randint(0, 10)):
 
 light = Light(500, 500, NUM_RAYS)
 
-# Music note list
 notes = ["♪", "♫", "♬", "♩", "♬"]
 music_notes = random.choices(notes, k=10)
 music_note_timer = 0
 
-# Main Game Loop
 running = True
 while running:
     screen.fill(BACKGROUND_COLOR)
 
-    # Draw title
     draw_text("Laser Music Machine", font, TEXT_COLOR, screen, WIDTH // 2, HEIGHT // 8)
 
-    # Draw walls
     for wall in walls:
         wall.show(screen)
 
-    # Update light source and show rays
     light.x1, light.y1 = pygame.mouse.get_pos()
     light.show(screen, walls)
 
-    # Draw UI elements
     toggle_button.draw(screen)
     draw_random_notes(screen, music_notes, music_note_timer)
     start_button.draw(screen)
 
-    # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -210,7 +190,7 @@ while running:
                 toggle_button.color = (0, 255, 0) if recording else (255, 0, 0)
             if start_button.click():
                 pygame.quit()
-                subprocess.run(["python", "main.py"])  # Run another script
+                subprocess.run(["python", "main.py"])
                 sys.exit()
 
     pygame.display.flip()
