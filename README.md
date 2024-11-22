@@ -4,8 +4,6 @@ This is my project that won the Hackathons UK Hackiest Hack prize at [Hack Sheff
 
 ![Lasar Music Machine](./assets/1.jpg)
 
-![Lasar Music Machine Demo](./assets/demo.gif)
-
 ### How It Works
 
 1. **The Start Screen (start.py)**: 
