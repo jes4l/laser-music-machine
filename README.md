@@ -1,10 +1,10 @@
 # Lasar Music Machine 🎶🏆
 
-This is my project that won the Hackathons UK Hackiest Hack pize at [HackSheffeld 9](https://hacksheffield.uk/) and here is my [devpost](https://devpost.com/software/laser-music-machine). Hackiest Hack means to build something over-the-top over engineered and held together with string and to use your imagination. This project is built using a box of scraps from B&Q, tape, a glue gun and lasers. Lasar Music Machine, inspired by Jean-Michel Jarre's lasar harp, turn's lasers into an interactive musical instrument. It uses computer vision to detect six laser beams, each corresponding to a musical note. When a laser is interrupted, the it plays the associated note, dynamically adjusting the pitch based on the height of your hand—higher for increased pitch and lower for decreased pitch. 
-
-![Lasar Music Machine Demo](./assets/demo.gif)
+This is my project that won the Hackathons UK Hackiest Hack prize at [Hack Sheffield 9](https://hacksheffield.uk/) and here is my [devpost](https://devpost.com/software/laser-music-machine). Hackiest Hack means to build something over-the-top over engineered and held together with string and to use your imagination. This project is built using a box of scraps from B&Q, tape, a glue gun and lasers. Lasar Music Machine, inspired by Jean-Michel Jarre's lasar harp, turn's lasers into an interactive musical instrument. It uses computer vision to detect six laser beams, each corresponding to a musical note. When a laser is interrupted, the it plays the associated note, dynamically adjusting the pitch based on the height of your hand—higher for increased pitch and lower for decreased pitch. 
 
 ![Lasar Music Machine](./assets/1.jpg)
+
+![Lasar Music Machine Demo](./assets/demo.gif)
 
 ### How It Works
 
@@ -17,7 +17,7 @@ This is my project that won the Hackathons UK Hackiest Hack pize at [HackSheffel
     This script uses the subprocess module to run lazarDetector.py and pitch.py sequentially.
    
 3. **Lasar Detection (lazarDetector.py)**:
-    When running `lazarDetector.py`, the script captures video from webcam 0 using OpenCV and processes each frame to detect red objects. It dynamically adjusts the HSV color range for red detection using histogram analysis and CLAHE (Contrast Limited Adaptive Histogram Equalization). The ObjectTracker class tracks up to six objects by matching their positions using the Euclidean distance and the Hungarian algorithm. This algorithm ensures that each detected red object is paired with the closest tracked object, minimising the total distance between them. This optimal assignment helps maintain accurate and consistent tracking of multiple objects.
+    When running `lazarDetector.py`, the script captures video from webcam 0 using OpenCV and processes each frame to detect red objects. It dynamically adjusts the HSV colour range for red detection using histogram analysis and CLAHE (Contrast Limited Adaptive Histogram Equalization). The ObjectTracker class tracks up to six objects by matching their positions using the Euclidean distance and the Hungarian algorithm. This algorithm ensures that each detected red object is paired with the closest tracked object, minimising the total distance between them. This optimal assignment helps maintain accurate and consistent tracking of multiple objects.
 
     Each tracked object corresponds to a musical note, which is played using Pygame's mixer module when the red object is detected. The script records the timing and notes played, saving this data to a CSV file. The system includes debounce logic, which prevents the same note from being played multiple times in quick succession by enforcing a minimum time interval between detections for each object. When the `q` key is pressed, the recording is saved, and the `end.py` script is executed.
    
