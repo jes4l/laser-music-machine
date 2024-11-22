@@ -2,6 +2,7 @@
 
 This is my project that won the Hackathons UK Hackiest Hack pize at [HackSheffeld 9](https://hacksheffield.uk/) and here is my [devpost](https://devpost.com/software/laser-music-machine). Hackiest Hack means to build something over-the-top over engineered and held together with string and to use your imagination. This project is built using a box of scraps from B&Q, tape, a glue gun and lasers. Lasar Music Machine, inspired by Jean-Michel Jarre's lasar harp, turn's lasers into an interactive musical instrument. It uses computer vision to detect six laser beams, each corresponding to a musical note. When a laser is interrupted, the it plays the associated note, dynamically adjusting the pitch based on the height of your hand—higher for increased pitch and lower for decreased pitch. 
 
+![Lasar Music Machine Demo](./assets/demo.gif)
 
 ![Lasar Music Machine](./assets/1.jpg)
 
